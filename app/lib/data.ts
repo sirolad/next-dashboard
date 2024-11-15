@@ -29,24 +29,15 @@ export async function fetchRevenue() {
 
 export async function fetchLatestInvoices() {
   noStore();
-  
   try {
     const data = await sql<LatestInvoiceRaw>`
-      SELECT 
-        invoices.amount, 
-        customers.name, 
-        customers.image_url, 
-        customers.email, 
-        invoices.id
+      SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
       FROM invoices
       JOIN customers ON invoices.customer_id = customers.id
-      WHERE invoices.date >= NOW() - INTERVAL '30 days'
       ORDER BY invoices.date DESC
       LIMIT 5`;
 
-    if (!data.rows.length) {
-      return [];
-    }
+    console.log(JSON.stringify(data.rows, null, 2), data);
 
     const latestInvoices = data.rows.map((invoice) => ({
       ...invoice,
@@ -55,8 +46,37 @@ export async function fetchLatestInvoices() {
     return latestInvoices;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch the latest invoices. Please try again later.');
+    throw new Error('Failed to fetch the latest invoices.');
   }
+  // noStore();
+  
+  // try {
+  //   const data = await sql<LatestInvoiceRaw>`
+  //     SELECT 
+  //       invoices.amount, 
+  //       customers.name, 
+  //       customers.image_url, 
+  //       customers.email, 
+  //       invoices.id
+  //     FROM invoices
+  //     JOIN customers ON invoices.customer_id = customers.id
+  //     WHERE invoices.date >= NOW() - INTERVAL '30 days'
+  //     ORDER BY invoices.date DESC
+  //     LIMIT 5`;
+
+  //   if (!data.rows.length) {
+  //     return [];
+  //   }
+
+  //   const latestInvoices = data.rows.map((invoice) => ({
+  //     ...invoice,
+  //     amount: formatCurrency(invoice.amount),
+  //   }));
+  //   return latestInvoices;
+  // } catch (error) {
+  //   console.error('Database Error:', error);
+  //   throw new Error('Failed to fetch the latest invoices. Please try again later.');
+  // }
 }
 
 export async function fetchCardData() {
