@@ -1,16 +1,25 @@
+'use client';
+
 import { CustomerField } from '@/app/lib/definitions';
 import Link from 'next/link';
-import {
-  CheckIcon,
-  ClockIcon,
-  CurrencyDollarIcon,
-  UserCircleIcon,
-} from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
-
+import { useState } from 'react';
+import { UserCircleIcon, CurrencyDollarIcon, CheckIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { createInvoice } from '@/app/lib/actions';
+export const revalidate = 0
 export default function Form({ customers }: { customers: CustomerField[] }) {
+  const [formData, setFormData] = useState({
+    customerId: '',
+    amount: '',
+    status: ''
+  });
+
+  const isFormValid = () => {
+    return formData.customerId && formData.amount && formData.status;
+  };
+
   return (
-    <form>
+    <form action={createInvoice}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
@@ -22,7 +31,8 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
               id="customer"
               name="customerId"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-              defaultValue=""
+              value={formData.customerId}
+              onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
             >
               <option value="" disabled>
                 Select a customer
@@ -51,6 +61,8 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                 step="0.01"
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               />
               <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
@@ -70,6 +82,8 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                   name="status"
                   type="radio"
                   value="pending"
+                  checked={formData.status === 'pending'}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
                 <label
@@ -85,6 +99,8 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                   name="status"
                   type="radio"
                   value="paid"
+                  checked={formData.status === 'paid'}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
                 <label
@@ -105,7 +121,9 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
         >
           Cancel
         </Link>
-        <Button type="submit">Create Invoice</Button>
+        <Button type="submit" disabled={!isFormValid()}>
+          Create Invoice
+        </Button>
       </div>
     </form>
   );

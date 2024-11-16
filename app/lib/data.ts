@@ -10,6 +10,8 @@ import {
 import { formatCurrency } from './utils';
 import { unstable_noStore as noStore } from 'next/cache';
 
+export const revalidate = 0
+
 export async function fetchRevenue() {
   noStore();
   
@@ -31,13 +33,20 @@ export async function fetchLatestInvoices() {
   noStore();
   try {
     const data = await sql<LatestInvoiceRaw>`
-      SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
+      SELECT 
+        invoices.amount, 
+        customers.name, 
+        customers.image_url, 
+        customers.email, 
+        invoices.id
       FROM invoices
       JOIN customers ON invoices.customer_id = customers.id
       ORDER BY invoices.date DESC
       LIMIT 5`;
 
-    console.log(JSON.stringify(data.rows, null, 2), data);
+    if (!data.rows.length) {
+      return [];
+    }
 
     const latestInvoices = data.rows.map((invoice) => ({
       ...invoice,
@@ -46,37 +55,8 @@ export async function fetchLatestInvoices() {
     return latestInvoices;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch the latest invoices.');
+    throw new Error('Failed to fetch the latest invoices. Please try again later.');
   }
-  // noStore();
-  
-  // try {
-  //   const data = await sql<LatestInvoiceRaw>`
-  //     SELECT 
-  //       invoices.amount, 
-  //       customers.name, 
-  //       customers.image_url, 
-  //       customers.email, 
-  //       invoices.id
-  //     FROM invoices
-  //     JOIN customers ON invoices.customer_id = customers.id
-  //     WHERE invoices.date >= NOW() - INTERVAL '30 days'
-  //     ORDER BY invoices.date DESC
-  //     LIMIT 5`;
-
-  //   if (!data.rows.length) {
-  //     return [];
-  //   }
-
-  //   const latestInvoices = data.rows.map((invoice) => ({
-  //     ...invoice,
-  //     amount: formatCurrency(invoice.amount),
-  //   }));
-  //   return latestInvoices;
-  // } catch (error) {
-  //   console.error('Database Error:', error);
-  //   throw new Error('Failed to fetch the latest invoices. Please try again later.');
-  // }
 }
 
 export async function fetchCardData() {
@@ -202,9 +182,6 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = DEFAULT_T
 export async function fetchInvoiceById(id: string) {
   noStore();
   try {
-    if (!/^\d+$/.test(id)) {
-      throw new Error('Invalid invoice ID format');
-    }
 
     const data = await withTimeout(
       sql<InvoiceForm>`
