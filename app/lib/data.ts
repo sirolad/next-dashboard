@@ -195,14 +195,16 @@ export async function fetchInvoiceById(id: string) {
       `
     );
 
-    if (!data.rows.length) {
-      throw new Error(`Invoice with ID ${id} not found`);
-    }
+    // if (!data.rows.length) {
+    //   throw new Error(`Invoice with ID ${id} not found`);
+    // }
 
     const invoice = data.rows.map((invoice) => ({
       ...invoice,
       amount: invoice.amount / 100,
     }));
+
+    console.log(invoice);
 
     return invoice[0];
   } catch (error) {
