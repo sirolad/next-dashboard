@@ -72,6 +72,14 @@ export async function updateInvoice(
     prevState: State,
     formData: FormData,
   ) {
+    // Make sure formData is not undefined before proceeding
+    if (!formData) {
+      return {
+        errors: {},
+        message: 'Form data is missing. Please try again.',
+      };
+    }
+    
     const validatedFields = UpdateInvoice.safeParse({
       customerId: formData.get('customerId'),
       amount: formData.get('amount'),
